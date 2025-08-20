@@ -14,18 +14,20 @@ Sarah has her idea sketched out:
 - Premium tier: Unlimited plants + AI disease detection
 - Admin dashboard for managing users
 
-She starts by getting the scaffolding system:
+She starts by installing the scaffolding system:
 
 ```console
-$ cd ~/projects
-$ git clone https://github.com/nisbus/claude-scaffold.git
-$ cd claude-scaffold
-$ ./scripts/register-scaffold-command.sh
+$ curl -sSL https://raw.githubusercontent.com/nisbus/claude-scaffold/main/scripts/install-scaffold-system.sh | bash
 
-✅ Scaffold command successfully registered!
-📋 Usage:
-  /scaffold new my-project    - Create a new scaffolded project
-  /scaffold existing          - Scaffold the current directory
+🚀 Installing Claude Code Scaffold System
+==========================================
+Cloning scaffold repository to /home/sarah/.claude-scaffold
+Registering /scaffold command...
+✅ Claude Code Scaffold System installed successfully!
+
+📍 Installation Details:
+  System Home: /home/sarah/.claude-scaffold
+  Claude Config: /home/sarah/.claude
 ```
 
 ---

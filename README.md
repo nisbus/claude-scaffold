@@ -153,18 +153,23 @@ With Claude Code Scaffold, you can go from idea to deployed application in:
 
 ## 🎯 Quick Start
 
-### Initial Setup (One-time)
+### System Installation (One-time)
+
+Install the scaffold system globally for your user:
 
 ```bash
-# Clone the scaffolding system
+# Install directly from GitHub
+curl -sSL https://raw.githubusercontent.com/nisbus/claude-scaffold/main/scripts/install-scaffold-system.sh | bash
+
+# Or clone and install locally
 git clone https://github.com/nisbus/claude-scaffold.git
 cd claude-scaffold
-
-# Register the /scaffold command with Claude Code
-./scripts/register-scaffold-command.sh
+./scripts/install-scaffold-system.sh
 
 # Restart Claude Code for changes to take effect
 ```
+
+This installs the scaffold system to `~/.claude-scaffold` and registers the `/scaffold` command globally.
 
 ### New Project
 
@@ -446,6 +451,29 @@ After scaffolding, verify:
 - [ ] Environment variables set
 - [ ] Documentation generated
 - [ ] Local development working
+
+## 🔧 System Management
+
+### Update Scaffold System
+```bash
+# Update to latest version
+~/.claude-scaffold/update-scaffold.sh
+
+# Or reinstall
+curl -sSL https://raw.githubusercontent.com/nisbus/claude-scaffold/main/scripts/install-scaffold-system.sh | bash
+```
+
+### Uninstall
+```bash
+# Remove scaffold system
+~/.claude-scaffold/uninstall-scaffold.sh
+```
+
+### System Paths
+- **Installation**: `~/.claude-scaffold/`
+- **Claude Config**: `~/.claude/commands/scaffold.json`
+- **Project Templates**: `~/.claude-scaffold/templates/`
+- **Examples**: `~/.claude-scaffold/examples/`
 
 ## 🚀 Next Steps
 

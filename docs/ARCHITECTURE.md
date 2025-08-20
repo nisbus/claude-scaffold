@@ -256,26 +256,37 @@ SMTP_PASS=
 }
 ```
 
-## Scaffolding Commands
+## Scaffolding Usage
 
 ### New Project
-```bash
-claude-code scaffold new [project-name]
+In Claude Code (after registration):
+```
+/scaffold new [project-name]
+```
+
+Or natural language:
+```
+"Please scaffold a new project called [project-name]"
 ```
 
 ### Existing Project
-```bash
-claude-code scaffold existing
+In Claude Code:
+```
+/scaffold existing
 ```
 
-### Options
-- `--backend [erlang|node|python]` - Backend language (default: erlang)
-- `--db [render|neon]` - Database provider (default: render)
-- `--auth-roles [basic|saas|marketplace|org]` - Auth0 role structure
-- `--stripe-tiers [simple|tiered|usage|seat]` - Stripe pricing model
-- `--skip-auth` - Skip Auth0 setup
-- `--skip-payments` - Skip Stripe setup
-- `--skip-ci` - Skip GitHub Actions setup
+Or natural language:
+```
+"Please scaffold this existing project with authentication and payments"
+```
+
+### Configuration Options
+Claude will interactively prompt for:
+- Backend language: Erlang (default), Node.js, or Python
+- Database provider: Render PostgreSQL (default) or Neon
+- Authentication roles: Basic, SaaS, Marketplace, or Organization
+- Pricing model: Simple, Tiered, Usage-based, or Seat-based
+- Service selections: Auth0, Stripe, GitHub Actions (all optional)
 
 ## Required Tools & Services
 
