@@ -1,0 +1,272 @@
+# Complete Render configuration example with all service types
+# This example shows staging and production environments
+
+services:
+  # ===========================================
+  # PRODUCTION SERVICES
+  # ===========================================
+  
+  # Production Backend API (Erlang/OTP)
+  - type: web
+    name: myapp-api
+    runtime: docker
+    plan: starter  # starter | standard | pro | pro_plus
+    dockerfilePath: ./backend/Dockerfile.prod
+    repo: https://github.com/yourusername/myapp.git
+    region: oregon  # oregon | frankfurt | singapore | ohio | virginia
+    branch: main
+    healthCheckPath: /api/health
+    numInstances: 1
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        fromDatabase:
+          name: myapp-db
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          type: redis
+          name: myapp-redis
+          property: connectionString
+      - key: AUTH0_DOMAIN
+        value: myapp.auth0.com
+      - key: AUTH0_CLIENT_ID
+        sync: false  # Marks as secret
+      - key: AUTH0_CLIENT_SECRET
+        sync: false
+      - key: AUTH0_AUDIENCE
+        value: https://api.myapp.com
+      - key: STRIPE_SECRET_KEY
+        sync: false
+      - key: STRIPE_WEBHOOK_SECRET
+        sync: false
+      - key: SESSION_SECRET
+        generateValue: true  # Auto-generate secret
+      - key: FRONTEND_URL
+        value: https://myapp.com
+
+  # Production Backend API (Node.js)
+  - type: web
+    name: myapp-api-node
+    env: node
+    plan: starter
+    buildCommand: npm ci && npm run build
+    startCommand: npm start
+    repo: https://github.com/yourusername/myapp.git
+    region: oregon
+    branch: main
+    rootDir: backend
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+
+  # Production Backend API (Python)
+  - type: web
+    name: myapp-api-python
+    env: python
+    plan: starter
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn app:app
+    repo: https://github.com/yourusername/myapp.git
+    region: oregon
+    branch: main
+    rootDir: backend
+    healthCheckPath: /api/health
+    pythonVersion: "3.11"
+    envVars:
+      - key: PYTHON_ENV
+        value: production
+
+  # Production Frontend (Static Site)
+  - type: static
+    name: myapp-frontend
+    plan: starter
+    buildCommand: npm ci && npm run build:production
+    staticPublishPath: ./dist
+    repo: https://github.com/yourusername/myapp.git
+    region: oregon
+    branch: main
+    rootDir: frontend
+    headers:
+      - path: /*
+        name: X-Frame-Options
+        value: DENY
+      - path: /*
+        name: X-Content-Type-Options
+        value: nosniff
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+    envVars:
+      - key: VITE_API_URL
+        value: https://myapp-api.onrender.com/api
+      - key: VITE_AUTH0_DOMAIN
+        value: myapp.auth0.com
+      - key: VITE_AUTH0_CLIENT_ID
+        value: YOUR_CLIENT_ID
+      - key: VITE_STRIPE_PUBLISHABLE_KEY
+        value: pk_live_YOUR_KEY
+
+  # ===========================================
+  # STAGING SERVICES
+  # ===========================================
+  
+  # Staging Backend API
+  - type: web
+    name: myapp-api-staging
+    runtime: docker
+    plan: free  # Use free tier for staging
+    dockerfilePath: ./backend/Dockerfile
+    repo: https://github.com/yourusername/myapp.git
+    region: oregon
+    branch: staging
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: staging
+      - key: DATABASE_URL
+        fromDatabase:
+          name: myapp-db-staging
+          property: connectionString
+      - key: AUTH0_DOMAIN
+        value: myapp-staging.auth0.com
+      - key: STRIPE_SECRET_KEY
+        sync: false  # Use test key for staging
+      - key: FRONTEND_URL
+        value: https://myapp-staging.onrender.com
+
+  # Staging Frontend
+  - type: static
+    name: myapp-frontend-staging
+    plan: free
+    buildCommand: npm ci && npm run build:staging
+    staticPublishPath: ./dist
+    repo: https://github.com/yourusername/myapp.git
+    region: oregon
+    branch: staging
+    rootDir: frontend
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+    envVars:
+      - key: VITE_API_URL
+        value: https://myapp-api-staging.onrender.com/api
+      - key: VITE_AUTH0_DOMAIN
+        value: myapp-staging.auth0.com
+      - key: VITE_STRIPE_PUBLISHABLE_KEY
+        value: pk_test_YOUR_KEY
+
+  # ===========================================
+  # BACKGROUND WORKERS & CRON JOBS
+  # ===========================================
+  
+  # Background Worker Service
+  - type: worker
+    name: myapp-worker
+    runtime: docker
+    plan: starter
+    dockerfilePath: ./worker/Dockerfile
+    repo: https://github.com/yourusername/myapp.git
+    region: oregon
+    branch: main
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: myapp-db
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          type: redis
+          name: myapp-redis
+          property: connectionString
+
+  # Cron Job Service
+  - type: cron
+    name: myapp-daily-reports
+    env: node
+    plan: free
+    schedule: "0 0 * * *"  # Daily at midnight
+    buildCommand: npm ci
+    startCommand: npm run generate-reports
+    repo: https://github.com/yourusername/myapp.git
+    region: oregon
+    branch: main
+    rootDir: jobs
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: myapp-db
+          property: connectionString
+
+  # ===========================================
+  # DATABASES
+  # ===========================================
+  
+  # Production Database (PostgreSQL)
+  - type: postgres
+    name: myapp-db
+    plan: standard  # free | starter | standard | pro | pro_plus
+    region: oregon
+    ipAllowList:  # Optional IP whitelist
+      - source: 0.0.0.0/0
+        description: Allow all connections
+    postgresMajorVersion: 15
+
+  # Staging Database
+  - type: postgres
+    name: myapp-db-staging
+    plan: free
+    region: oregon
+    postgresMajorVersion: 15
+
+  # ===========================================
+  # REDIS (KEY-VALUE STORE)
+  # ===========================================
+  
+  # Production Redis
+  - type: redis
+    name: myapp-redis
+    plan: starter  # free | starter | standard | pro | pro_plus
+    region: oregon
+    maxmemoryPolicy: allkeys-lru  # noeviction | allkeys-lru | volatile-lru | allkeys-random
+    ipAllowList:
+      - source: 0.0.0.0/0
+        description: Allow all connections
+
+  # Staging Redis
+  - type: redis
+    name: myapp-redis-staging
+    plan: free
+    region: oregon
+    maxmemoryPolicy: allkeys-lru
+
+# ===========================================
+# PREVIEW ENVIRONMENTS (PR DEPLOYMENTS)
+# ===========================================
+previewsEnabled: true
+previewsExpireAfterDays: 3
+
+# ===========================================
+# ENVIRONMENT GROUPS (SHARED ENV VARS)
+# ===========================================
+envVarGroups:
+  - name: shared-secrets
+    envVars:
+      - key: SENTRY_DSN
+        value: https://xxx@sentry.io/xxx
+      - key: DATADOG_API_KEY
+        sync: false
+      - key: LOG_LEVEL
+        value: info
+
+# ===========================================
+# CUSTOM DOMAINS
+# ===========================================
+# Note: Custom domains are configured via Render dashboard or API
+# after services are created

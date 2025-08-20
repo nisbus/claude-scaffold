@@ -1,0 +1,173 @@
+name: Deploy to Staging
+
+on:
+  push:
+    branches: [ staging ]
+  workflow_dispatch:
+    inputs:
+      reason:
+        description: 'Reason for manual deployment'
+        required: false
+        type: string
+
+env:
+  NODE_VERSION: '22'
+  ERLANG_VERSION: '26.0'
+  PYTHON_VERSION: '3.11'
+
+jobs:
+  # Run tests before deployment
+  test:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup runtime
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+      
+      # For Erlang projects
+      - name: Setup Erlang
+        if: ${{ contains(github.repository, 'erlang') }}
+        uses: erlef/setup-beam@v1
+        with:
+          otp-version: ${{ env.ERLANG_VERSION }}
+          rebar3-version: '3.22.1'
+      
+      # For Python projects  
+      - name: Setup Python
+        if: ${{ contains(github.repository, 'python') }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      
+      - name: Install dependencies
+        run: |
+          if [ -f "rebar.config" ]; then
+            rebar3 deps
+          elif [ -f "requirements.txt" ]; then
+            pip install -r requirements.txt
+          else
+            npm ci
+          fi
+      
+      - name: Run tests
+        run: |
+          if [ -f "rebar.config" ]; then
+            rebar3 do eunit, ct
+            rebar3 dialyzer
+            rebar3 hank
+          elif [ -f "pytest.ini" ]; then
+            pytest
+            black --check .
+            mypy .
+          else
+            npm test
+            npm run lint
+            npm run typecheck
+          fi
+
+  # Deploy to Render staging
+  deploy:
+    runs-on: ubuntu-latest
+    needs: test
+    
+    steps:
+      - name: Deploy Backend to Render
+        run: |
+          echo "🚀 Deploying backend to staging..."
+          curl -X POST "https://api.render.com/v1/services/${{ secrets.RENDER_BACKEND_STAGING_ID }}/deploys" \
+            -H "Authorization: Bearer ${{ secrets.RENDER_API_KEY }}" \
+            -H "Content-Type: application/json" \
+            -d '{"clearCache": "clear"}'
+      
+      - name: Deploy Frontend to Render
+        run: |
+          echo "🚀 Deploying frontend to staging..."
+          curl -X POST "https://api.render.com/v1/services/${{ secrets.RENDER_FRONTEND_STAGING_ID }}/deploys" \
+            -H "Authorization: Bearer ${{ secrets.RENDER_API_KEY }}" \
+            -H "Content-Type: application/json" \
+            -d '{"clearCache": "clear"}'
+      
+      - name: Wait for deployment
+        run: |
+          echo "⏳ Waiting for deployment to complete..."
+          sleep 120
+
+  # Run E2E tests
+  e2e-tests:
+    runs-on: ubuntu-latest
+    needs: deploy
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+      
+      - name: Install Playwright
+        run: |
+          npm ci
+          npx playwright install --with-deps
+      
+      - name: Run E2E tests
+        env:
+          TEST_ENV: staging
+          BASE_URL: ${{ secrets.STAGING_URL }}
+          AUTH0_TEST_USER: ${{ secrets.AUTH0_TEST_USER }}
+          AUTH0_TEST_PASSWORD: ${{ secrets.AUTH0_TEST_PASSWORD }}
+        run: |
+          npm run test:e2e
+      
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 7
+
+  # Create PR to main if tests pass
+  create-pr:
+    runs-on: ubuntu-latest
+    needs: e2e-tests
+    if: success()
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v5
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: 'chore: promote staging to production'
+          title: '🚀 Deploy to Production'
+          body: |
+            ## Deployment Summary
+            
+            ✅ All staging tests passed
+            ✅ E2E tests completed successfully
+            
+            ### Changes
+            ${{ github.event.head_commit.message }}
+            
+            ### Checklist
+            - [ ] Review staging environment
+            - [ ] Verify all features working
+            - [ ] Check monitoring dashboards
+            - [ ] Approve for production
+            
+            ### Deployment
+            Merging this PR will automatically deploy to production.
+          branch: staging-to-production
+          base: main
+          delete-branch: true

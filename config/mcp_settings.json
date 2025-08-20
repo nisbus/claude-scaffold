@@ -1,0 +1,45 @@
+{
+  "mcpServers": {
+    "render": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-render"],
+      "env": {
+        "RENDER_API_KEY": "${RENDER_API_KEY}"
+      }
+    },
+    "github": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-github"],
+      "env": {
+        "GITHUB_PERSONAL_ACCESS_TOKEN": "${GITHUB_TOKEN}"
+      }
+    },
+    "stripe": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-stripe"],
+      "env": {
+        "STRIPE_API_KEY": "${STRIPE_SECRET_KEY}"
+      }
+    },
+    "neon": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-neon"],
+      "env": {
+        "NEON_API_KEY": "${NEON_API_KEY}"
+      }
+    },
+    "playwright": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-playwright"]
+    },
+    "auth0": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-auth0"],
+      "env": {
+        "AUTH0_DOMAIN": "${AUTH0_DOMAIN}",
+        "AUTH0_CLIENT_ID": "${AUTH0_CLIENT_ID}",
+        "AUTH0_CLIENT_SECRET": "${AUTH0_CLIENT_SECRET}"
+      }
+    }
+  }
+}
