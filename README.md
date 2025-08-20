@@ -183,13 +183,13 @@ With Claude Code Scaffold, you can go from idea to deployed application in:
 - **Auth0 Credentials**: Get from [Auth0 Dashboard](https://manage.auth0.com)
 - **Neon API Key** (optional): Get from [Neon Console](https://console.neon.tech/api-keys)
 
-### CLI Tools (auto-installed if missing)
+### CLI Tools (verified during setup)
 - `render` - Render CLI
 - `gh` - GitHub CLI
 - `stripe` - Stripe CLI
 - `auth0` - Auth0 CLI
 
-### MCP Servers (auto-configured)
+### MCP Servers (configured automatically)
 - `render-mcp` - Render integration
 - `github-mcp` - GitHub integration
 - `stripe-mcp` - Stripe integration
@@ -342,7 +342,7 @@ Automatic verification of:
 ### Manual Command
 When prompted, Claude Code will execute:
 ```
-claude-code scaffold new [project-name]
+/scaffold new [project-name]
 ```
 
 ### Claude Code Instructions
@@ -462,17 +462,17 @@ auth0 login
 
 ### Update Environment Variables
 ```bash
-claude-code scaffold update-env
+/scaffold update-env
 ```
 
 ### Rotate Secrets
 ```bash
-claude-code scaffold rotate-secrets
+/scaffold rotate-secrets
 ```
 
 ### Database Backup
 ```bash
-claude-code scaffold backup-db
+/scaffold backup-db
 ```
 
 ## 🤝 Contributing
