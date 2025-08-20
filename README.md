@@ -110,6 +110,17 @@ my-app/
 - **CI/CD**: GitHub Actions workflows for automated testing and deployment
 - **Infrastructure as Code**: All services configured programmatically
 
+## ⏱️ Time to Production
+
+With Claude Code Scaffold, you can go from idea to deployed application in:
+- **Initial Setup**: 5 minutes (one-time)
+- **Project Creation**: 2 minutes
+- **Service Configuration**: 15 minutes
+- **Basic Features**: 30-60 minutes
+- **Deployment**: 10 minutes
+
+**Total: Under 2 hours for a production-ready application!**
+
 ## 📋 Prerequisites
 
 ### Required API Keys
@@ -131,6 +142,14 @@ my-app/
 - `stripe-mcp` - Stripe integration
 - `playwright-mcp` - Browser automation (for Auth0)
 - `neon-mcp` - Neon integration (optional)
+
+## 📖 Complete Workflow Story
+
+**[Read the full story: From Idea to Production](docs/WORKFLOW_STORY.md)** - Follow Sarah as she builds "PlantCare", a SaaS application, from concept to deployment in just 2 hours. Includes:
+- Step-by-step walkthrough with real commands
+- Best practices for prompting Claude
+- Common workflows and pro tips
+- Complete example from database design to production deployment
 
 ## 🎯 Quick Start
 
