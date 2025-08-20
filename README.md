@@ -28,6 +28,78 @@ If not using render.yaml, configure manually in Render Dashboard → Settings �
 
 **Note:** The Render API/MCP server don't support programmatic rewrite configuration yet.
 
+## 🏗️ Architecture & Flow
+
+### Scaffold Command Flow
+
+```mermaid
+graph TD
+    A[User: /scaffold new my-app] --> B[Claude Code]
+    B --> C[Load scaffold.json]
+    C --> D[Execute scaffold-execute.sh]
+    
+    D --> E[Create Project Directory]
+    E --> F[Copy Templates]
+    F --> G[Setup .claude/mcp_settings.json]
+    G --> H[Generate Project CLAUDE.md]
+    H --> I[Initialize Git Repo]
+    
+    I --> J[Claude Reads CLAUDE.md]
+    J --> K[Follow Scaffolding Workflow]
+    
+    K --> L[Setup Services]
+    L --> M[Render: Create DB & Services]
+    L --> N[Auth0: Configure Authentication]
+    L --> O[Stripe: Setup Payments]
+    L --> P[GitHub: Create Repo & Actions]
+    
+    M --> Q[Deploy Application]
+    N --> Q
+    O --> Q
+    P --> Q
+    
+    Q --> R[Project Ready!]
+```
+
+### Directory Structure After Scaffolding
+
+```
+my-app/
+├── .claude/                      # Claude-specific configs
+│   ├── mcp_settings.json        # MCP server configurations
+│   └── project.json             # Project metadata
+├── .scaffold/                   # Scaffolding reference
+│   ├── CLAUDE.md               # Original scaffold instructions
+│   ├── examples/               # Example configurations
+│   ├── templates/              # Template files
+│   └── scripts/                # Utility scripts
+├── frontend/                    # Frontend application
+│   ├── app/                    # Next.js app directory
+│   ├── components/             # React components
+│   ├── lib/                    # Utilities
+│   └── public/                 # Static assets
+├── backend/                     # Backend API
+│   ├── src/                    # Source code
+│   ├── config/                 # Configuration
+│   └── package.json           # Dependencies
+├── .github/                     # GitHub configuration
+│   └── workflows/              # CI/CD pipelines
+├── docs/                        # Documentation
+│   └── ARCHITECTURE.md        # Architecture overview
+├── CLAUDE.md                   # Project-specific Claude instructions
+└── README.md                   # Project documentation
+```
+
+### How It Works
+
+1. **Command Registration**: Run `scripts/register-scaffold-command.sh` to register the `/scaffold` command with Claude Code
+2. **Command Invocation**: Use `/scaffold new my-app` or `/scaffold existing` in Claude Code
+3. **Project Setup**: The scaffold script creates the project structure and copies all necessary files
+4. **MCP Configuration**: Local `.claude/mcp_settings.json` is created with all required MCP servers
+5. **Claude Instructions**: A project-specific `CLAUDE.md` is generated to guide Claude through the setup
+6. **Service Initialization**: Claude follows the workflow to set up all services (Render, Auth0, Stripe, GitHub)
+7. **Deployment**: Applications are deployed to staging and production environments
+
 ## 🚀 Features
 
 - **Full-Stack Setup**: Frontend (Next.js/React) + Backend (Erlang/Node.js/Python)
@@ -62,26 +134,41 @@ If not using render.yaml, configure manually in Render Dashboard → Settings �
 
 ## 🎯 Quick Start
 
-### New Project
+### Initial Setup (One-time)
+
 ```bash
 # Clone the scaffolding system
-git clone <repository> scaffolding-system
-cd scaffolding-system/scaffold
+git clone https://github.com/nisbus/claude-scaffold.git
+cd claude-scaffold
 
-# Make the script executable
-chmod +x scripts/scaffold-init.sh
+# Register the /scaffold command with Claude Code
+./scripts/register-scaffold-command.sh
 
-# Create a new project
-./scripts/scaffold-init.sh new my-awesome-app
+# Restart Claude Code for changes to take effect
+```
+
+### New Project
+
+In Claude Code, use the registered command:
+```
+/scaffold new my-awesome-app
+```
+
+Or ask Claude naturally:
+```
+"Please scaffold a new project called my-awesome-app"
 ```
 
 ### Existing Project
-```bash
-# Navigate to your existing project
-cd my-existing-project
 
-# Run scaffolding
-/path/to/scaffold/scripts/scaffold-init.sh existing
+Navigate to your project directory, then in Claude Code:
+```
+/scaffold existing
+```
+
+Or ask Claude:
+```
+"Please scaffold this existing project with auth, payments, and deployment"
 ```
 
 ## 🔧 Configuration Options
